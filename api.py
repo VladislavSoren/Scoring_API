@@ -10,7 +10,7 @@
 # from http.server import BaseHTTPRequestHandler, HTTPServer
 # from optparse import OptionParser
 
-from fields import ClientIDsField
+from fields import ClientIDsField, DateField
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -37,6 +37,7 @@ GENDERS = {
     FEMALE: "female",
 }
 
+
 # class CharField:
 #     pass
 #
@@ -61,21 +62,9 @@ GENDERS = {
 #     pass
 
 
-"""
-descr.__get__(self, obj, type=None) --> value
-descr.__set__(self, obj, value) --> None
-descr.__delete__(self, obj) --> None
-descr.__set_name__(self, owner, name) --> None
-"""
-
-
-class DateField:
-    pass
-
-
 class ClientsInterestsRequest:
     client_ids = ClientIDsField(required=True)
-    # date = DateField(required=False, nullable=True)
+    date = DateField(required=False, nullable=True)
 
 
 # class OnlineScoreRequest:

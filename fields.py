@@ -1,3 +1,6 @@
+import datetime
+
+
 class ClientIDsField:
     def __init__(self, required):
         self.required = required
@@ -22,6 +25,46 @@ class ClientIDsField:
                 raise TypeError("value in array must be an int")
 
         setattr(instance, self.client_ids, ints_list)
+
+
+class DateField:
+    def __init__(self, required: bool, nullable: bool):
+        self.required = required
+        self.nullable = nullable
+        self.date = "_date"
+
+    def __get__(self, instance, cls):
+        return getattr(instance, self.date, self.date)
+
+    def __set__(self, instance, date_str: str):
+        # Validation
+        # check for emptiness
+        # if
+        if self.required:
+            if date_str is None:
+                raise Exception("date string is None, required=True")
+        else:
+            if date_str is None:
+                setattr(instance, self.date, None)
+                return
+
+        if not self.nullable and (date_str == ""):
+            raise Exception("date string is empty, nullable=False")
+
+        # str check
+        if not isinstance(date_str, str):
+            raise TypeError("date string must be a str")
+
+        #
+        if date_str == "":
+            setattr(instance, self.date, str(date_str))
+        else:
+            try:
+                dt_date = datetime.datetime.strptime(date_str, "%d.%m.%Y").date()
+            except ValueError:
+                raise ValueError("invalid format")
+            else:
+                setattr(instance, self.date, str(dt_date))
 
 
 # response = {
