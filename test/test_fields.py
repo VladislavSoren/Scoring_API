@@ -1,7 +1,7 @@
 import unittest
 from test.support_functions import cases
 
-from fields import CharField, ClientIDsField, DateField, EmailField
+from fields import CharField, ClientIDsField, DateField, EmailField, PhoneField
 
 
 class TestCharField(unittest.TestCase):
@@ -59,6 +59,70 @@ class TestCharField(unittest.TestCase):
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
             date = CharField(required=False, nullable=False)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+
+class TestPhoneField(unittest.TestCase):
+    @cases(
+        [
+            ("19996560820", "does not start with 7 or not len != 11"),
+            ("799965", "does not start with 7 or not len != 11"),
+            (None, "string is None"),
+        ]
+    )
+    def test_req_nul_true_fail(self, sample, exception_text):
+        class Owner:
+            date = PhoneField(required=True, nullable=True)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ("19996560820", "does not start with 7 or not len != 11"),
+            ("799965", "does not start with 7 or not len != 11"),
+            ("", "string is empty"),
+        ]
+    )
+    def test_req_nul_false_fail(self, sample, exception_text):
+        class Owner:
+            date = PhoneField(required=False, nullable=False)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ("79996560820", "79996560820"),
+            ("", ""),
+        ]
+    )
+    def test_req_nul_true_success(self, sample, exception_value):
+        class Owner:
+            date = PhoneField(required=True, nullable=True)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+    @cases(
+        [
+            ("79996560820", "79996560820"),
+            (None, None),
+        ]
+    )
+    def test_req_nul_false_success(self, sample, exception_value):
+        class Owner:
+            date = PhoneField(required=False, nullable=False)
 
         my_owner = Owner()
         my_owner.date = sample
