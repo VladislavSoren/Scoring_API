@@ -1,7 +1,7 @@
 import unittest
 from test.support_functions import cases
 
-from fields import CharField, ClientIDsField, DateField
+from fields import CharField, ClientIDsField, DateField, EmailField
 
 
 class TestCharField(unittest.TestCase):
@@ -23,7 +23,6 @@ class TestCharField(unittest.TestCase):
     @cases(
         [
             (123, "must be a str"),
-            # (None, "string is None"),
             ("", "string is empty"),
         ]
     )
@@ -60,6 +59,70 @@ class TestCharField(unittest.TestCase):
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
             date = CharField(required=False, nullable=False)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+
+class TestEmailField(unittest.TestCase):
+    @cases(
+        [
+            (123, "must be a str"),
+            ("postmail.com", "no @"),
+            (None, "string is None"),
+        ]
+    )
+    def test_req_nul_true_fail(self, sample, exception_text):
+        class Owner:
+            date = EmailField(required=True, nullable=True)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            (123, "must be a str"),
+            ("postmail.com", "no @"),
+            ("", "string is empty"),
+        ]
+    )
+    def test_req_nul_false_fail(self, sample, exception_text):
+        class Owner:
+            date = EmailField(required=False, nullable=False)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ("post@mail.com", "post@mail.com"),
+            ("", ""),
+        ]
+    )
+    def test_req_nul_true_success(self, sample, exception_value):
+        class Owner:
+            date = EmailField(required=True, nullable=True)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+    @cases(
+        [
+            ("post@mail.com", "post@mail.com"),
+            (None, None),
+        ]
+    )
+    def test_req_nul_false_success(self, sample, exception_value):
+        class Owner:
+            date = EmailField(required=False, nullable=False)
 
         my_owner = Owner()
         my_owner.date = sample

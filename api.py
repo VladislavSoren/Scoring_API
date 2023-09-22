@@ -44,9 +44,6 @@ GENDERS = {
 #     pass
 #
 #
-# class EmailField(CharField):
-#     pass
-#
 #
 # class PhoneField:
 #     pass
