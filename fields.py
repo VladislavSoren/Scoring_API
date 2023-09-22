@@ -1,5 +1,74 @@
 import datetime
 
+# class OnlineScoreRequest:
+#     first_name = CharField(required=False, nullable=True)
+#     last_name = CharField(required=False, nullable=True)
+#     email = EmailField(required=False, nullable=True)
+#     phone = PhoneField(required=False, nullable=True)
+#     birthday = BirthDayField(required=False, nullable=True)
+#     gender = GenderField(required=False, nullable=True)
+
+
+class CharField:
+    def __init__(self, required, nullable):
+        self.required = required
+        self.nullable = nullable
+        self.value = "_value"
+        self.default = None
+
+    def __get__(self, instance, cls):
+        return getattr(instance, self.value, self.default)
+
+    def __set__(self, instance, value):
+        # Validation
+        if self.required:
+            if value is None:
+                raise Exception("string is None, required=True")
+        else:
+            if value is None:
+                setattr(instance, self.value, None)
+                return
+
+        # empty error if nullable=False
+        if not self.nullable and (value == ""):
+            raise Exception("string is empty, nullable=False")
+
+        # str type check
+        if not isinstance(value, str):
+            raise TypeError("string must be a str")
+
+        setattr(instance, self.value, value)
+
+
+class DateField(CharField):
+    def __init__(self, required: bool, nullable: bool):
+        super().__init__(required, nullable)
+
+    def __get__(self, instance, cls):
+        return getattr(instance, self.value, self.value)
+
+    def __set__(self, instance, date_value: str):
+        # check string properties
+        super().__set__(instance, date_value)
+
+        # get attr which was set in parent class
+        date_value = getattr(instance, self.value)
+
+        # date_value is None -> escape
+        if date_value is None:
+            return
+
+        # if empty str -> set this, else -> try to convert and set
+        if date_value == "":
+            setattr(instance, self.value, str(date_value))
+        else:
+            try:
+                dt_date = datetime.datetime.strptime(date_value, "%d.%m.%Y").date()
+            except ValueError:
+                raise ValueError("invalid format")
+            else:
+                setattr(instance, self.value, str(dt_date))
+
 
 class ClientIDsField:
     def __init__(self, required):
@@ -25,46 +94,6 @@ class ClientIDsField:
                 raise TypeError("value in array must be an int")
 
         setattr(instance, self.client_ids, ints_list)
-
-
-class DateField:
-    def __init__(self, required: bool, nullable: bool):
-        self.required = required
-        self.nullable = nullable
-        self.date = "_date"
-
-    def __get__(self, instance, cls):
-        return getattr(instance, self.date, self.date)
-
-    def __set__(self, instance, date_str: str):
-        # Validation
-        # check for emptiness
-        # if
-        if self.required:
-            if date_str is None:
-                raise Exception("date string is None, required=True")
-        else:
-            if date_str is None:
-                setattr(instance, self.date, None)
-                return
-
-        if not self.nullable and (date_str == ""):
-            raise Exception("date string is empty, nullable=False")
-
-        # str check
-        if not isinstance(date_str, str):
-            raise TypeError("date string must be a str")
-
-        #
-        if date_str == "":
-            setattr(instance, self.date, str(date_str))
-        else:
-            try:
-                dt_date = datetime.datetime.strptime(date_str, "%d.%m.%Y").date()
-            except ValueError:
-                raise ValueError("invalid format")
-            else:
-                setattr(instance, self.date, str(dt_date))
 
 
 # response = {

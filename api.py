@@ -38,8 +38,6 @@ GENDERS = {
 }
 
 
-# class CharField:
-#     pass
 #
 #
 # class ArgumentsField:
