@@ -7,8 +7,61 @@ def timedelta_to_years(delta: datetime.timedelta) -> int:
 
 
 # class OnlineScoreRequest:
-#     birthday = BirthDayField(required=False, nullable=True)
 #     gender = GenderField(required=False, nullable=True)
+
+
+class IntegerField:
+    def __init__(self, required, nullable):
+        self.required = required
+        self.nullable = nullable
+        self.value = "_value"
+        self.default = None
+
+    def __get__(self, instance, cls):
+        return getattr(instance, self.value, self.default)
+
+    def __set__(self, instance, value):
+        # Validation
+        if self.required:
+            if value is None:
+                raise Exception("value is None, required=True")
+        else:
+            if value is None:
+                setattr(instance, self.value, None)
+                return
+
+        # type check
+        if not isinstance(value, int):
+            raise TypeError("value must be an int")
+
+        setattr(instance, self.value, value)
+
+
+class GenderField(IntegerField):
+    acceptable_range = (0, 1, 2)
+
+    def __init__(self, required: bool, nullable: bool):
+        super().__init__(required, nullable)
+
+    def __get__(self, instance, cls):
+        return getattr(instance, self.value, self.value)
+
+    def __set__(self, instance, input_value: str):
+        # check string properties
+        super().__set__(instance, input_value)
+
+        # get attr which was set in parent class
+        input_value = getattr(instance, self.value)
+
+        # input_value is None -> escape
+        if input_value is None:
+            return
+
+        if input_value in self.acceptable_range:
+            setattr(instance, self.value, input_value)
+        else:
+            setattr(instance, self.value, None)
+            raise Exception("not in acceptable_range")
 
 
 class CharField:

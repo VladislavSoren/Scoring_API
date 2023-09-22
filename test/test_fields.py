@@ -7,8 +7,76 @@ from fields import (
     ClientIDsField,
     DateField,
     EmailField,
+    GenderField,
     PhoneField,
 )
+
+
+class TestGenderField(unittest.TestCase):
+    acceptable_range = GenderField.acceptable_range
+
+    @cases(
+        [
+            ("123", "value must be an int"),
+            (None, "value is None"),
+            (5, "not in acceptable_range"),
+        ]
+    )
+    def test_req_nul_true_fail(self, sample, exception_text):
+        class Owner:
+            date = GenderField(required=True, nullable=True)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ("123", "value must be an int"),
+            # ("", "string is empty"),
+            (5, "not in acceptable_range"),
+        ]
+    )
+    def test_req_nul_false_fail(self, sample, exception_text):
+        class Owner:
+            date = GenderField(required=False, nullable=False)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            (0, 0),
+            (1, 1),
+            # ("", ""),
+        ]
+    )
+    def test_req_nul_true_success(self, sample, exception_value):
+        class Owner:
+            date = GenderField(required=True, nullable=True)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+    @cases(
+        [
+            (2, 2),
+            (None, None),
+        ]
+    )
+    def test_req_nul_false_success(self, sample, exception_value):
+        class Owner:
+            date = GenderField(required=False, nullable=False)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
 
 
 class TestCharField(unittest.TestCase):
