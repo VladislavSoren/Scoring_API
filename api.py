@@ -44,11 +44,6 @@ GENDERS = {
 #     pass
 #
 #
-#
-# class PhoneField:
-#     pass
-#
-#
 # class BirthDayField:
 #     pass
 #

@@ -1,7 +1,14 @@
 import unittest
 from test.support_functions import cases
 
-from fields import CharField, ClientIDsField, DateField, EmailField, PhoneField
+from fields import (
+    BirthDayField,
+    CharField,
+    ClientIDsField,
+    DateField,
+    EmailField,
+    PhoneField,
+)
 
 
 class TestCharField(unittest.TestCase):
@@ -252,6 +259,82 @@ class TestDateField(unittest.TestCase):
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
             date = DateField(required=False, nullable=False)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+
+class TestBirthDayField(unittest.TestCase):
+    age_limit = BirthDayField.age_limit
+
+    @cases(
+        [
+            ("10.11.201", "invalid format"),
+            ("2019.10.11", "invalid format"),
+            (123, "must be a str"),
+            (None, "string is None"),
+            ("10.11.1920", f"age more then {age_limit}"),
+        ]
+    )
+    def test_req_nul_true_fail(self, sample, exception_text):
+        class Owner:
+            date = BirthDayField(required=True, nullable=True)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ("10.11.201", "invalid format"),
+            ("2019.10.11", "invalid format"),
+            (123, "must be a str"),
+            ("", "string is empty"),
+            ("10.11.1920", f"age more then {age_limit}"),
+        ]
+    )
+    def test_req_nul_false_fail(self, sample, exception_text):
+        class Owner:
+            date = BirthDayField(required=False, nullable=False)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ("10.11.2023", "2023-11-10"),
+            ("1.5.2023", "2023-05-01"),
+            ("01.05.2023", "2023-05-01"),
+            ("", ""),
+            ("10.11.1970", "1970-11-10"),
+        ]
+    )
+    def test_req_nul_true_success(self, sample, exception_value):
+        class Owner:
+            date = BirthDayField(required=True, nullable=True)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+    @cases(
+        [
+            ("10.11.2023", "2023-11-10"),
+            ("1.5.2023", "2023-05-01"),
+            ("01.05.2023", "2023-05-01"),
+            (None, None),
+            ("10.11.1970", "1970-11-10"),
+        ]
+    )
+    def test_req_nul_false_success(self, sample, exception_value):
+        class Owner:
+            date = BirthDayField(required=False, nullable=False)
 
         my_owner = Owner()
         my_owner.date = sample

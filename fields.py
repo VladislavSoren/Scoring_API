@@ -1,7 +1,12 @@
 import datetime
 
+
+def timedelta_to_years(delta: datetime.timedelta) -> int:
+    seconds_in_year = 365.25 * 24 * 60 * 60
+    return int(delta.total_seconds() / seconds_in_year)
+
+
 # class OnlineScoreRequest:
-#     phone = PhoneField(required=False, nullable=True)
 #     birthday = BirthDayField(required=False, nullable=True)
 #     gender = GenderField(required=False, nullable=True)
 
@@ -121,6 +126,40 @@ class DateField(CharField):
                 raise ValueError("invalid format")
             else:
                 setattr(instance, self.value, str(dt_date))
+
+
+class BirthDayField(DateField):
+    age_limit = 70
+
+    def __init__(self, required: bool, nullable: bool):
+        super().__init__(required, nullable)
+
+    def __get__(self, instance, cls):
+        return getattr(instance, self.value, self.value)
+
+    def __set__(self, instance, input_value: str):
+        # check string properties
+        super().__set__(instance, input_value)
+
+        # get attr which was set in parent class
+        input_value = getattr(instance, self.value)
+
+        # input_value is None or "" -> escape
+        if input_value is None:
+            return
+        if input_value == "":
+            return
+
+        birth_date = datetime.datetime.strptime(input_value, "%Y-%m-%d").date()
+        current_date = datetime.datetime.now().date()
+        delta_time = current_date - birth_date
+        delta_years = timedelta_to_years(delta_time)
+
+        if delta_years > self.age_limit:
+            setattr(instance, self.value, "")
+            raise ValueError(f"age more then {self.age_limit}")
+        else:
+            setattr(instance, self.value, input_value)
 
 
 class ClientIDsField:
