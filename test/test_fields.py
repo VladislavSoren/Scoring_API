@@ -2,6 +2,7 @@ import unittest
 from test.support_functions import cases
 
 from fields import (
+    ArgumentsField,
     BirthDayField,
     CharField,
     ClientIDsField,
@@ -10,6 +11,74 @@ from fields import (
     GenderField,
     PhoneField,
 )
+
+
+class TestArgumentsField(unittest.TestCase):
+    acceptable_range = GenderField.acceptable_range
+
+    @cases(
+        [
+            ([1, 2], "must be a dict"),
+            ({(1, "a"): "12345"}, "is not a valid json"),
+            (None, "value is None"),
+        ]
+    )
+    def test_req_nul_true_fail(self, sample, exception_text):
+        class Owner:
+            date = ArgumentsField(required=True, nullable=True)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ([1, 2], "must be a dict"),
+            ({(1, "a"): "12345"}, "is not a valid json"),
+            ({}, "is empty"),
+        ]
+    )
+    def test_req_nul_false_fail(self, sample, exception_text):
+        class Owner:
+            date = ArgumentsField(required=False, nullable=False)
+
+        my_owner = Owner()
+
+        with self.assertRaisesRegex(Exception, exception_text):
+            my_owner.date = sample
+
+    @cases(
+        [
+            ({"client_ids": {1: 2}, "date": "20.07.2017"}, {"client_ids": {1: 2}, "date": "20.07.2017"}),
+            ({"client_ids": [], "date": "20.07.2017"}, {"client_ids": [], "date": "20.07.2017"}),
+            ({}, {}),
+        ]
+    )
+    def test_req_nul_true_success(self, sample, exception_value):
+        class Owner:
+            date = ArgumentsField(required=True, nullable=True)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
+
+    @cases(
+        [
+            ({"client_ids": {1: 2}, "date": "20.07.2017"}, {"client_ids": {1: 2}, "date": "20.07.2017"}),
+            ({"client_ids": [], "date": "20.07.2017"}, {"client_ids": [], "date": "20.07.2017"}),
+            (None, None),
+        ]
+    )
+    def test_req_nul_false_success(self, sample, exception_value):
+        class Owner:
+            date = ArgumentsField(required=False, nullable=False)
+
+        my_owner = Owner()
+        my_owner.date = sample
+
+        self.assertEqual(my_owner.date, exception_value)
 
 
 class TestGenderField(unittest.TestCase):

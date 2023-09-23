@@ -38,20 +38,6 @@ GENDERS = {
 }
 
 
-#
-#
-# class ArgumentsField:
-#     pass
-#
-#
-# class BirthDayField:
-#     pass
-#
-#
-# class GenderField:
-#     pass
-
-
 class ClientsInterestsRequest:
     client_ids = ClientIDsField(required=True)
     date = DateField(required=False, nullable=True)

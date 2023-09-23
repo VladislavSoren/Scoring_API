@@ -1,4 +1,5 @@
 import datetime
+import json
 
 
 def timedelta_to_years(delta: datetime.timedelta) -> int:
@@ -6,8 +7,42 @@ def timedelta_to_years(delta: datetime.timedelta) -> int:
     return int(delta.total_seconds() / seconds_in_year)
 
 
-# class OnlineScoreRequest:
-#     gender = GenderField(required=False, nullable=True)
+class ArgumentsField:
+    def __init__(self, required, nullable):
+        self.required = required
+        self.nullable = nullable
+        self.value = "_value"
+        self.default = None
+
+    def __get__(self, instance, cls):
+        return getattr(instance, self.value, self.default)
+
+    def __set__(self, instance, value):
+        # Validation
+        if self.required:
+            if value is None:
+                raise Exception("value is None, required=True")
+        else:
+            if value is None:
+                setattr(instance, self.value, None)
+                return
+
+        # type check
+        if not isinstance(value, dict):
+            raise TypeError("must be a dict")
+
+        # empty error if nullable=False
+        if not self.nullable and (value == {}):
+            raise Exception("is empty, nullable=False")
+
+        #
+        try:
+            _ = json.dumps(value)  # get json_string
+        except Exception:
+            raise Exception("is not a valid json")
+        else:
+            setattr(instance, self.value, value)
+        # json_dict = json.loads(json_string)
 
 
 class IntegerField:
