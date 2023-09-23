@@ -25,12 +25,12 @@ class TestArgumentsField(unittest.TestCase):
     )
     def test_req_nul_true_fail(self, sample, exception_text):
         class Owner:
-            date = ArgumentsField(required=True, nullable=True)
+            value = ArgumentsField("value", required=True, nullable=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -41,12 +41,12 @@ class TestArgumentsField(unittest.TestCase):
     )
     def test_req_nul_false_fail(self, sample, exception_text):
         class Owner:
-            date = ArgumentsField(required=False, nullable=False)
+            value = ArgumentsField("value", required=False, nullable=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -57,12 +57,12 @@ class TestArgumentsField(unittest.TestCase):
     )
     def test_req_nul_true_success(self, sample, exception_value):
         class Owner:
-            date = ArgumentsField(required=True, nullable=True)
+            value = ArgumentsField("value", required=True, nullable=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -73,12 +73,12 @@ class TestArgumentsField(unittest.TestCase):
     )
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
-            date = ArgumentsField(required=False, nullable=False)
+            value = ArgumentsField("value", required=False, nullable=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 class TestGenderField(unittest.TestCase):
@@ -93,12 +93,12 @@ class TestGenderField(unittest.TestCase):
     )
     def test_req_nul_true_fail(self, sample, exception_text):
         class Owner:
-            date = GenderField(required=True, nullable=True)
+            value = GenderField("value", required=True, nullable=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -109,12 +109,12 @@ class TestGenderField(unittest.TestCase):
     )
     def test_req_nul_false_fail(self, sample, exception_text):
         class Owner:
-            date = GenderField(required=False, nullable=False)
+            value = GenderField("value", required=False, nullable=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -125,12 +125,12 @@ class TestGenderField(unittest.TestCase):
     )
     def test_req_nul_true_success(self, sample, exception_value):
         class Owner:
-            date = GenderField(required=True, nullable=True)
+            value = GenderField("value", required=True, nullable=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -140,12 +140,12 @@ class TestGenderField(unittest.TestCase):
     )
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
-            date = GenderField(required=False, nullable=False)
+            value = GenderField("value", required=False, nullable=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 class TestCharField(unittest.TestCase):
@@ -157,12 +157,12 @@ class TestCharField(unittest.TestCase):
     )
     def test_req_nul_true_fail(self, sample, exception_text):
         class Owner:
-            date = CharField(required=True, nullable=True)
+            value = CharField("value", required=True, nullable=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -172,12 +172,12 @@ class TestCharField(unittest.TestCase):
     )
     def test_req_nul_false_fail(self, sample, exception_text):
         class Owner:
-            date = CharField(required=False, nullable=False)
+            value = CharField("value", required=False, nullable=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -187,12 +187,12 @@ class TestCharField(unittest.TestCase):
     )
     def test_req_nul_true_success(self, sample, exception_value):
         class Owner:
-            date = CharField(required=True, nullable=True)
+            value = CharField("value", required=True, nullable=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -202,12 +202,12 @@ class TestCharField(unittest.TestCase):
     )
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
-            date = CharField(required=False, nullable=False)
+            value = CharField("value", required=False, nullable=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 class TestPhoneField(unittest.TestCase):
@@ -220,12 +220,12 @@ class TestPhoneField(unittest.TestCase):
     )
     def test_req_nul_true_fail(self, sample, exception_text):
         class Owner:
-            date = PhoneField(required=True, nullable=True)
+            value = PhoneField("value", required=True, nullable=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -236,12 +236,12 @@ class TestPhoneField(unittest.TestCase):
     )
     def test_req_nul_false_fail(self, sample, exception_text):
         class Owner:
-            date = PhoneField(required=False, nullable=False)
+            value = PhoneField("value", required=False, nullable=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -251,12 +251,12 @@ class TestPhoneField(unittest.TestCase):
     )
     def test_req_nul_true_success(self, sample, exception_value):
         class Owner:
-            date = PhoneField(required=True, nullable=True)
+            value = PhoneField("value", required=True, nullable=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -266,12 +266,12 @@ class TestPhoneField(unittest.TestCase):
     )
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
-            date = PhoneField(required=False, nullable=False)
+            value = PhoneField("value", required=False, nullable=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 class TestEmailField(unittest.TestCase):
@@ -284,12 +284,12 @@ class TestEmailField(unittest.TestCase):
     )
     def test_req_nul_true_fail(self, sample, exception_text):
         class Owner:
-            date = EmailField(required=True, nullable=True)
+            value = EmailField("value", required=True, nullable=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -300,12 +300,12 @@ class TestEmailField(unittest.TestCase):
     )
     def test_req_nul_false_fail(self, sample, exception_text):
         class Owner:
-            date = EmailField(required=False, nullable=False)
+            value = EmailField("value", required=False, nullable=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -315,12 +315,12 @@ class TestEmailField(unittest.TestCase):
     )
     def test_req_nul_true_success(self, sample, exception_value):
         class Owner:
-            date = EmailField(required=True, nullable=True)
+            value = EmailField("value", required=True, nullable=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -330,12 +330,12 @@ class TestEmailField(unittest.TestCase):
     )
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
-            date = EmailField(required=False, nullable=False)
+            value = EmailField("value", required=False, nullable=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 class TestDateField(unittest.TestCase):
@@ -349,24 +349,24 @@ class TestDateField(unittest.TestCase):
     )
     def test_req_nul_true_fail(self, sample, exception_text):
         class Owner:
-            date = DateField(required=True, nullable=True)
+            value = DateField("value", required=True, nullable=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [("10.11.201", "invalid format"), ("2019.10.11", "invalid format"), (123, "must be a str"), ("", "string is empty")]
     )
     def test_req_nul_false_fail(self, sample, exception_text):
         class Owner:
-            date = DateField(required=False, nullable=False)
+            value = DateField("value", required=False, nullable=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -378,12 +378,12 @@ class TestDateField(unittest.TestCase):
     )
     def test_req_nul_true_success(self, sample, exception_value):
         class Owner:
-            date = DateField(required=True, nullable=True)
+            value = DateField("value", required=True, nullable=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -395,12 +395,12 @@ class TestDateField(unittest.TestCase):
     )
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
-            date = DateField(required=False, nullable=False)
+            value = DateField("value", required=False, nullable=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 class TestBirthDayField(unittest.TestCase):
@@ -417,12 +417,12 @@ class TestBirthDayField(unittest.TestCase):
     )
     def test_req_nul_true_fail(self, sample, exception_text):
         class Owner:
-            date = BirthDayField(required=True, nullable=True)
+            value = BirthDayField("value", required=True, nullable=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -435,12 +435,12 @@ class TestBirthDayField(unittest.TestCase):
     )
     def test_req_nul_false_fail(self, sample, exception_text):
         class Owner:
-            date = BirthDayField(required=False, nullable=False)
+            value = BirthDayField("value", required=False, nullable=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -453,12 +453,12 @@ class TestBirthDayField(unittest.TestCase):
     )
     def test_req_nul_true_success(self, sample, exception_value):
         class Owner:
-            date = BirthDayField(required=True, nullable=True)
+            value = BirthDayField("value", required=True, nullable=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -471,12 +471,12 @@ class TestBirthDayField(unittest.TestCase):
     )
     def test_req_nul_false_success(self, sample, exception_value):
         class Owner:
-            date = BirthDayField(required=False, nullable=False)
+            value = BirthDayField("value", required=False, nullable=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 class TestClientIDsField(unittest.TestCase):
@@ -490,12 +490,12 @@ class TestClientIDsField(unittest.TestCase):
     )
     def test_req_true_fail(self, sample, exception_text):
         class Owner:
-            date = ClientIDsField(required=True)
+            value = ClientIDsField("value", required=True)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -506,12 +506,12 @@ class TestClientIDsField(unittest.TestCase):
     )
     def test_req_false_fail(self, sample, exception_text):
         class Owner:
-            date = ClientIDsField(required=False)
+            value = ClientIDsField("value", required=False)
 
         my_owner = Owner()
 
         with self.assertRaisesRegex(Exception, exception_text):
-            my_owner.date = sample
+            my_owner.value = sample
 
     @cases(
         [
@@ -521,12 +521,12 @@ class TestClientIDsField(unittest.TestCase):
     )
     def test_req_true_success(self, sample, exception_value):
         class Owner:
-            date = ClientIDsField(required=True)
+            value = ClientIDsField("value", required=True)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
     @cases(
         [
@@ -537,12 +537,12 @@ class TestClientIDsField(unittest.TestCase):
     )
     def test_req_false_success(self, sample, exception_value):
         class Owner:
-            date = ClientIDsField(required=False)
+            value = ClientIDsField("value", required=False)
 
         my_owner = Owner()
-        my_owner.date = sample
+        my_owner.value = sample
 
-        self.assertEqual(my_owner.date, exception_value)
+        self.assertEqual(my_owner.value, exception_value)
 
 
 # if __name__ == "__main__":

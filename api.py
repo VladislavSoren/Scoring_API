@@ -50,26 +50,26 @@ GENDERS = {
 
 
 class ClientsInterestsRequest:
-    client_ids = ClientIDsField(required=True)
-    date = DateField(required=False, nullable=True)
+    client_ids = ClientIDsField("client_ids", required=True)
+    date = DateField("date", required=False, nullable=True)
 
 
 class OnlineScoreRequest:
-    first_name = CharField(required=False, nullable=True)
-    last_name = CharField(required=False, nullable=True)
-    email = EmailField(required=False, nullable=True)
-    phone = PhoneField(required=False, nullable=True)
-    birthday = BirthDayField(required=False, nullable=True)
-    gender = GenderField(required=False, nullable=True)
+    first_name = CharField("first_name", required=False, nullable=True)
+    last_name = CharField("last_name", required=False, nullable=True)
+    email = EmailField("email", required=False, nullable=True)
+    phone = PhoneField("phone", required=False, nullable=True)
+    birthday = BirthDayField("birthday", required=False, nullable=True)
+    gender = GenderField("gender", required=False, nullable=True)
 
 
 # Структура запроса
 class MethodRequest:
-    account = CharField(required=False, nullable=True)
-    login = CharField(required=True, nullable=True)
-    token = CharField(required=True, nullable=True)
-    arguments = ArgumentsField(required=True, nullable=True)
-    method = CharField(required=True, nullable=False)
+    account = CharField("account", required=False, nullable=True)
+    login = CharField("login", required=True, nullable=True)
+    token = CharField("token", required=True, nullable=True)
+    arguments = ArgumentsField("arguments", required=True, nullable=True)
+    method = CharField("method", required=True, nullable=False)
 
     @property
     def is_admin(self):
@@ -89,6 +89,23 @@ class MethodRequest:
 # Метод определения способа обработки запроса: OnlineScoreRequest/ClientsInterestsRequest
 def score_handler(request, ctx, store):
     response, code = None, None
+
+    request_body = request["body"]
+
+    request_validator = MethodRequest()
+
+    request_validator.account = request_body.get("account")
+    request_validator.login = request_body.get("login")
+    request_validator.token = request_body.get("token")
+    request_validator.arguments = request_body.get("arguments")
+    request_validator.method = request_body.get("method")
+
+    # OnlineScoreRequest.first_name = MethodRequest.arguments.get('first_name')
+    # OnlineScoreRequest.last_name = MethodRequest.arguments.get('last_name')
+    # OnlineScoreRequest.email = MethodRequest.arguments.get('email')
+    # OnlineScoreRequest.phone = MethodRequest.arguments.get('phone')
+    # OnlineScoreRequest.birthday = MethodRequest.arguments.get('birthday')
+    # OnlineScoreRequest.gender = MethodRequest.arguments.get('gender')
 
     response = {"response": "score_handler"}
     code = 200
@@ -124,8 +141,8 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         # Объявления дефолтных значений
-        response, code = {}, OK
-        request_body = None
+        response_body, code = {}, OK
+        request = None
 
         # Получение контекста
         context = {"request_id": self.get_request_id(self.headers)}
@@ -134,20 +151,21 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers["Content-Length"])
         data_string = self.rfile.read(content_length)
 
-        # Получение тела запроса
+        # Десериализация (получение тела запроса в python объект)
         try:
-            request_body = json.loads(data_string)
+            request = json.loads(data_string)
         except Exception as e:
             code = BAD_REQUEST
             self.wfile.write(b"BAD_REQUEST")
             logging.info("%s: %s %s" % (self.path, e, context["request_id"]))
 
-        if request_body:
+        # Получение ответа на запрос
+        if request:
             path = self.path.strip("/")
-            logging.info("%s: %s %s" % (self.path, request_body, context["request_id"]))
+            logging.info("%s: %s %s" % (self.path, request, context["request_id"]))
             if path in self.router:
                 try:
-                    response, code = self.router[path]({"body": request_body, "headers": self.headers}, context, self.store)
+                    response_body, code = self.router[path]({"body": request, "headers": self.headers}, context, self.store)
                 except Exception as e:
                     logging.exception(f"Unexpected error: {e}")
                     code = INTERNAL_ERROR
@@ -159,47 +177,20 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "application/json")
         self.end_headers()
 
-        # Формирование тела ответа
+        # проверка на ошибки
+        if code not in ERRORS:
+            response = {"response": response_body, "code": code}
+        else:
+            response = {"error": response_body or ERRORS.get(code, "Unknown Error"), "code": code}
+        context.update(response)
+        logging.info(context)
+
         # Сериализация
         json_str_out = json.dumps(response)
         json_bytes_out = json_str_out.encode()
 
         # Отправка ответа
         self.wfile.write(json_bytes_out)
-
-    # def do_POST(self):
-    #     response, code = {}, OK
-    #     context = {"request_id": self.get_request_id(self.headers)}
-    #     request = None
-    #     try:
-    #         data_string = self.rfile.read(int(self.headers['Content-Length']))
-    #         request = json.loads(data_string)
-    #     except:
-    #         code = BAD_REQUEST
-    #
-    #     if request:
-    #         path = self.path.strip("/")
-    #         logging.info("%s: %s %s" % (self.path, data_string, context["request_id"]))
-    #         if path in self.router:
-    #             try:
-    #                 response, code = self.router[path]({"body": request, "headers": self.headers}, context, self.store)
-    #             except Exception as e:
-    #                 logging.exception(f"Unexpected error: {e}")
-    #                 code = INTERNAL_ERROR
-    #         else:
-    #             code = NOT_FOUND
-    #
-    #     self.send_response(code)
-    #     self.send_header("Content-Type", "application/json")
-    #     self.end_headers()
-    #     if code not in ERRORS:
-    #         r = {"response": response, "code": code}
-    #     else:
-    #         r = {"error": response or ERRORS.get(code, "Unknown Error"), "code": code}
-    #     context.update(r)
-    #     logging.info(context)
-    #     self.wfile.write(json.dumps(r))
-    #     return
 
 
 def pars_comline_args():
