@@ -22,6 +22,7 @@ from fields import (
     GenderField,
     PhoneField,
 )
+from scoring import get_score
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -93,21 +94,34 @@ def score_handler(request, ctx, store):
     request_body = request["body"]
 
     request_validator = MethodRequest()
-
     request_validator.account = request_body.get("account")
     request_validator.login = request_body.get("login")
     request_validator.token = request_body.get("token")
     request_validator.arguments = request_body.get("arguments")
     request_validator.method = request_body.get("method")
+    arguments = request_validator.arguments
 
-    # OnlineScoreRequest.first_name = MethodRequest.arguments.get('first_name')
-    # OnlineScoreRequest.last_name = MethodRequest.arguments.get('last_name')
-    # OnlineScoreRequest.email = MethodRequest.arguments.get('email')
-    # OnlineScoreRequest.phone = MethodRequest.arguments.get('phone')
-    # OnlineScoreRequest.birthday = MethodRequest.arguments.get('birthday')
-    # OnlineScoreRequest.gender = MethodRequest.arguments.get('gender')
+    args_validator = OnlineScoreRequest()
+    args_validator.first_name = arguments.get("first_name")
+    args_validator.last_name = arguments.get("last_name")
+    args_validator.email = arguments.get("email")
+    args_validator.phone = arguments.get("phone")
+    args_validator.birthday = arguments.get("birthday")
+    args_validator.gender = arguments.get("gender")
 
-    response = {"response": "score_handler"}
+    #
+    score = get_score(
+        store,
+        phone=args_validator.phone,
+        email=args_validator.email,
+        birthday=args_validator.birthday,
+        gender=args_validator.gender,
+        first_name=args_validator.first_name,
+        last_name=args_validator.last_name,
+    )
+    # * попробовать передать через * все разом
+
+    response = {"score": score}
     code = 200
 
     return response, code
