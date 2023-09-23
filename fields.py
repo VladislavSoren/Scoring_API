@@ -35,7 +35,7 @@ class ArgumentsField:
         if not self.nullable and (value == {}):
             raise Exception("is empty, nullable=False")
 
-        #
+        # check valid property
         try:
             _ = json.dumps(value)  # get json_string
         except Exception:
