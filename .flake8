@@ -13,5 +13,4 @@ exclude =
     venv,
     .venv,
     sup_script.py,
-    test/test_homework_1/line_format_config.py,
-    line_format_config.py,
+    config.py,

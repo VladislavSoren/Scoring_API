@@ -27,18 +27,29 @@ from scoring import get_interests, get_score
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
 ADMIN_SALT = "42"
-OK = 200
-BAD_REQUEST = 400
-FORBIDDEN = 403
-NOT_FOUND = 404
-INVALID_REQUEST = 422
-INTERNAL_ERROR = 500
+
+
+class StatusCodes:
+    OK = 200
+    BAD_REQUEST = 400
+    FORBIDDEN = 403
+    NOT_FOUND = 404
+    INVALID_REQUEST = 422
+    INTERNAL_ERROR = 500
+
+
+class ClientStatus:
+    admin = "admin"
+    user = "user"
+    forbidden = StatusCodes.FORBIDDEN
+
+
 ERRORS = {
-    BAD_REQUEST: "Bad Request",
-    FORBIDDEN: "Forbidden",
-    NOT_FOUND: "Not Found",
-    INVALID_REQUEST: "Invalid Request",
-    INTERNAL_ERROR: "Internal Server Error",
+    StatusCodes.BAD_REQUEST: "Bad Request",
+    StatusCodes.FORBIDDEN: "Forbidden",
+    StatusCodes.NOT_FOUND: "Not Found",
+    StatusCodes.INVALID_REQUEST: "Invalid Request",
+    StatusCodes.INTERNAL_ERROR: "Internal Server Error",
 }
 UNKNOWN = 0
 MALE = 1
@@ -79,12 +90,17 @@ class MethodRequest:
 
 def check_auth(request):
     if request.is_admin:
-        digest = hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).hexdigest()
+        info_for_hash_bytes = (datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).encode("utf-8")
+        digest = hashlib.sha512(info_for_hash_bytes).hexdigest()
+        if digest == request.token:
+            return ClientStatus.admin
     else:
-        digest = hashlib.sha512(request.account + request.login + SALT).hexdigest()
-    if digest == request.token:
-        return True
-    return False
+        info_for_hash_bytes = (request.account + request.login + SALT).encode("utf-8")
+        digest = hashlib.sha512(info_for_hash_bytes).hexdigest()
+        if digest == request.token:
+            return ClientStatus.user
+
+    return ClientStatus.forbidden
 
 
 def get_request_validator(request_body):
@@ -100,31 +116,42 @@ def get_request_validator(request_body):
 # Метод обработки score запроса
 def score_handler(request, ctx, store):
     request_body = request["body"]
+    response = {}
 
     request_validator = get_request_validator(request_body)
-    arguments = request_validator.arguments
+    status = check_auth(request_validator)
 
-    args_validator = OnlineScoreRequest()
-    args_validator.first_name = arguments.get("first_name")
-    args_validator.last_name = arguments.get("last_name")
-    args_validator.email = arguments.get("email")
-    args_validator.phone = arguments.get("phone")
-    args_validator.birthday = arguments.get("birthday")
-    args_validator.gender = arguments.get("gender")
+    if status == ClientStatus.admin:
+        response = 42
+        code = StatusCodes.OK
 
-    score = get_score(
-        store,
-        phone=args_validator.phone,
-        email=args_validator.email,
-        birthday=args_validator.birthday,
-        gender=args_validator.gender,
-        first_name=args_validator.first_name,
-        last_name=args_validator.last_name,
-    )
-    # * попробовать передать через * все разом
+    elif status == ClientStatus.user:
+        request_validator = get_request_validator(request_body)
+        arguments = request_validator.arguments
 
-    response = {"score": score}
-    code = 200
+        args_validator = OnlineScoreRequest()
+        args_validator.first_name = arguments.get("first_name")
+        args_validator.last_name = arguments.get("last_name")
+        args_validator.email = arguments.get("email")
+        args_validator.phone = arguments.get("phone")
+        args_validator.birthday = arguments.get("birthday")
+        args_validator.gender = arguments.get("gender")
+
+        score = get_score(
+            store,
+            phone=args_validator.phone,
+            email=args_validator.email,
+            birthday=args_validator.birthday,
+            gender=args_validator.gender,
+            first_name=args_validator.first_name,
+            last_name=args_validator.last_name,
+        )
+
+        response = {"score": score}
+        code = StatusCodes.OK
+
+    else:
+        code = StatusCodes.FORBIDDEN
 
     return response, code
 
@@ -132,21 +159,28 @@ def score_handler(request, ctx, store):
 # Метод обработки interests запроса
 def interests_handler(request, ctx, store):
     request_body = request["body"]
+    response = {}
 
     request_validator = get_request_validator(request_body)
-    arguments = request_validator.arguments
+    status = check_auth(request_validator)
 
-    args_validator = ClientsInterestsRequest()
-    args_validator.client_ids = arguments.get("client_ids")
-    args_validator.date = arguments.get("date")
+    if status == ClientStatus.admin or status == ClientStatus.user:
+        arguments = request_validator.arguments
 
-    interests_dict = {}
-    for cid in args_validator.client_ids:
-        interests = get_interests(store, cid=cid)
-        interests_dict[cid] = interests
+        args_validator = ClientsInterestsRequest()
+        args_validator.client_ids = arguments.get("client_ids")
+        args_validator.date = arguments.get("date")
 
-    response = interests_dict
-    code = 200
+        interests_dict = {}
+        for cid in args_validator.client_ids:
+            interests = get_interests(store, cid=cid)
+            interests_dict[cid] = interests
+
+        response = interests_dict
+        code = StatusCodes.OK
+
+    else:
+        code = StatusCodes.FORBIDDEN
 
     return response, code
 
@@ -160,7 +194,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
 
     # ping server
     def do_GET(self):
-        self.send_response(200)
+        self.send_response(StatusCodes.OK)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(b"Hello, world!")
@@ -170,7 +204,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         # Объявления дефолтных значений
-        response_body, code = {}, OK
+        response_body, code = {}, StatusCodes.OK
         request = None
         error_text = "Unknown"
 
@@ -185,7 +219,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         try:
             request = json.loads(data_string)
         except Exception as e:
-            code = BAD_REQUEST
+            code = StatusCodes.BAD_REQUEST
             self.wfile.write(b"BAD_REQUEST")
             logging.info("%s: %s %s" % (self.path, e, context["request_id"]))
 
@@ -199,9 +233,9 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     logging.exception(f"Error: {e}")
                     error_text = e
-                    code = INTERNAL_ERROR
+                    code = StatusCodes.INTERNAL_ERROR
             else:
-                code = NOT_FOUND
+                code = StatusCodes.NOT_FOUND
 
         # отправка заголовков (метаинформации об ответе)
         self.send_response(code)
@@ -213,7 +247,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
             response = {"response": response_body, "code": code}
         else:
             error_message = response_body or ERRORS.get(code, "Unknown Error")
-            if code == INTERNAL_ERROR:
+            if code == StatusCodes.INTERNAL_ERROR:
                 error_message = f"{error_message}: {error_text}"
 
             response = {"error": error_message, "code": code}
@@ -222,7 +256,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
 
         # Сериализация
         json_str_out = json.dumps(response)
-        json_bytes_out = json_str_out.encode()
+        json_bytes_out = json_str_out.encode("utf-8")
 
         # Отправка ответа
         self.wfile.write(json_bytes_out)
