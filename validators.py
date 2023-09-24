@@ -2,7 +2,7 @@ import datetime
 import hashlib
 
 from config import ADMIN_LOGIN, ADMIN_SALT, SALT, ClientStatus
-from fields import (
+from fields.fields import (
     ArgumentsField,
     BirthDayField,
     CharField,

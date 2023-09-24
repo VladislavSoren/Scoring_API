@@ -1,18 +1,28 @@
 import datetime
 import json
 
+from .custom_errors import NoneError, NullError, ValidationError
+
 
 def timedelta_to_years(delta: datetime.timedelta) -> int:
     seconds_in_year = 365.25 * 24 * 60 * 60
     return int(delta.total_seconds() / seconds_in_year)
 
 
-class ArgumentsField:
+class BaseField:
     def __init__(self, name: str, required: bool, nullable: bool):
         self.required = required
         self.nullable = nullable
         self.name = "_" + name
         self.default = None
+
+
+# custom errors
+
+
+class ArgumentsField(BaseField):
+    def __init__(self, name: str, required: bool, nullable: bool):
+        super().__init__(name, required, nullable)
 
     def __get__(self, instance, cls):
         return getattr(instance, self.name, self.default)
@@ -21,7 +31,7 @@ class ArgumentsField:
         # Validation
         if self.required:
             if value is None:
-                raise Exception(f"{self.name} - value is None, required=True")
+                raise NoneError(f"{self.name} - value is None, required=True")
         else:
             if value is None:
                 setattr(instance, self.name, None)
@@ -33,24 +43,21 @@ class ArgumentsField:
 
         # empty error if nullable=False
         if not self.nullable and (value == {}):
-            raise Exception(f"{self.name} - is empty, nullable=False")
+            raise NullError(f"{self.name} - is empty, nullable=False")
 
         # check valid property
         try:
             _ = json.dumps(value)  # get json_string
-        except Exception:
-            raise Exception(f"{self.name} - is not a valid json")
+        except TypeError:
+            raise TypeError(f"{self.name} - is not a valid json")
         else:
             setattr(instance, self.name, value)
         # json_dict = json.loads(json_string)
 
 
-class IntegerField:
+class IntegerField(BaseField):
     def __init__(self, name: str, required: bool, nullable: bool):
-        self.required = required
-        self.nullable = nullable
-        self.name = "_" + name
-        self.default = None
+        super().__init__(name, required, nullable)
 
     def __get__(self, instance, cls):
         return getattr(instance, self.name, self.default)
@@ -59,7 +66,7 @@ class IntegerField:
         # Validation
         if self.required:
             if value is None:
-                raise Exception(f"{self.name} - value is None, required=True")
+                raise NoneError(f"{self.name} - value is None, required=True")
         else:
             if value is None:
                 setattr(instance, self.name, None)
@@ -96,15 +103,12 @@ class GenderField(IntegerField):
             setattr(instance, self.name, input_value)
         else:
             setattr(instance, self.name, None)
-            raise Exception(f"{self.name} - not in acceptable_range")
+            raise ValidationError(f"{self.name} - not in acceptable_range")
 
 
-class CharField:
+class CharField(BaseField):
     def __init__(self, name, required, nullable):
-        self.required = required
-        self.nullable = nullable
-        self.name = "_" + name
-        self.default = None
+        super().__init__(name, required, nullable)
 
     def __get__(self, instance, cls):
         return getattr(instance, self.name, self.default)
@@ -113,7 +117,7 @@ class CharField:
         # Validation
         if self.required:
             if value is None:
-                raise Exception(f"{self.name} - string is None, required=True")
+                raise NoneError(f"{self.name} - string is None, required=True")
         else:
             if value is None:
                 setattr(instance, self.name, None)
@@ -121,7 +125,7 @@ class CharField:
 
         # empty error if nullable=False
         if not self.nullable and (value == ""):
-            raise Exception(f"{self.name} - string is empty, nullable=False")
+            raise NullError(f"{self.name} - string is empty, nullable=False")
 
         # str type check
         if not isinstance(value, str):
@@ -155,7 +159,7 @@ class PhoneField(CharField):
             if input_value.startswith("7") and len(input_value) == 11:
                 setattr(instance, self.name, input_value)
             else:
-                raise ValueError(f"{self.name} - does not start with 7 or len != 11")
+                raise ValidationError(f"{self.name} - does not start with 7 or len != 11")
 
 
 class EmailField(CharField):
@@ -263,7 +267,7 @@ class ClientIDsField:
         # Validation
         # check for emptiness
         if self.required and not value:
-            raise Exception(f"{self.name} - array is empty")
+            raise NoneError(f"{self.name} - array is empty")
 
         # list check
         if not isinstance(value, list):

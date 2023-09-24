@@ -1,7 +1,7 @@
 import unittest
 from test.support_functions import cases
 
-from fields import (
+from fields.fields import (
     ArgumentsField,
     BirthDayField,
     CharField,
