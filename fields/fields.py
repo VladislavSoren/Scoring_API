@@ -17,9 +17,6 @@ class BaseField:
         self.default = None
 
 
-# custom errors
-
-
 class ArgumentsField(BaseField):
     def __init__(self, name: str, required: bool, nullable: bool):
         super().__init__(name, required, nullable)
