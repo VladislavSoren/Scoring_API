@@ -1,4 +1,7 @@
-from config import ADMIN_LOGIN
+import datetime
+import hashlib
+
+from config import ADMIN_LOGIN, ADMIN_SALT, SALT, ClientStatus
 from fields import (
     ArgumentsField,
     BirthDayField,
@@ -46,3 +49,18 @@ def get_request_validator(request_body):
     request_validator.arguments = request_body.get("arguments")
     request_validator.method = request_body.get("method")
     return request_validator
+
+
+def check_auth(request):
+    if request.is_admin:
+        info_for_hash_bytes = (datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).encode("utf-8")
+        digest = hashlib.sha512(info_for_hash_bytes).hexdigest()
+        if digest == request.token:
+            return ClientStatus.admin
+    else:
+        info_for_hash_bytes = (request.account + request.login + SALT).encode("utf-8")
+        digest = hashlib.sha512(info_for_hash_bytes).hexdigest()
+        if digest == request.token:
+            return ClientStatus.user
+
+    return ClientStatus.forbidden
