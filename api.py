@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # import abc
-# import datetime
-# import hashlib
+import datetime
+import hashlib
 import json
 import logging
 import uuid
@@ -22,7 +22,7 @@ from fields import (
     GenderField,
     PhoneField,
 )
-from scoring import get_score
+from scoring import get_interests, get_score
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -77,28 +77,31 @@ class MethodRequest:
         return self.login == ADMIN_LOGIN
 
 
-# def check_auth(request):
-#     if request.is_admin:
-#         digest = hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).hexdigest()
-#     else:
-#         digest = hashlib.sha512(request.account + request.login + SALT).hexdigest()
-#     if digest == request.token:
-#         return True
-#     return False
+def check_auth(request):
+    if request.is_admin:
+        digest = hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).hexdigest()
+    else:
+        digest = hashlib.sha512(request.account + request.login + SALT).hexdigest()
+    if digest == request.token:
+        return True
+    return False
 
 
-# Метод определения способа обработки запроса: OnlineScoreRequest/ClientsInterestsRequest
-def score_handler(request, ctx, store):
-    response, code = None, None
-
-    request_body = request["body"]
-
+def get_request_validator(request_body):
     request_validator = MethodRequest()
     request_validator.account = request_body.get("account")
     request_validator.login = request_body.get("login")
     request_validator.token = request_body.get("token")
     request_validator.arguments = request_body.get("arguments")
     request_validator.method = request_body.get("method")
+    return request_validator
+
+
+# Метод обработки score запроса
+def score_handler(request, ctx, store):
+    request_body = request["body"]
+
+    request_validator = get_request_validator(request_body)
     arguments = request_validator.arguments
 
     args_validator = OnlineScoreRequest()
@@ -109,7 +112,6 @@ def score_handler(request, ctx, store):
     args_validator.birthday = arguments.get("birthday")
     args_validator.gender = arguments.get("gender")
 
-    #
     score = get_score(
         store,
         phone=args_validator.phone,
@@ -127,10 +129,23 @@ def score_handler(request, ctx, store):
     return response, code
 
 
+# Метод обработки interests запроса
 def interests_handler(request, ctx, store):
-    response, code = None, None
+    request_body = request["body"]
 
-    response = {"response": "interests_handler"}
+    request_validator = get_request_validator(request_body)
+    arguments = request_validator.arguments
+
+    args_validator = ClientsInterestsRequest()
+    args_validator.client_ids = arguments.get("client_ids")
+    args_validator.date = arguments.get("date")
+
+    interests_dict = {}
+    for cid in args_validator.client_ids:
+        interests = get_interests(store, cid=cid)
+        interests_dict[cid] = interests
+
+    response = interests_dict
     code = 200
 
     return response, code
@@ -157,6 +172,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         # Объявления дефолтных значений
         response_body, code = {}, OK
         request = None
+        error_text = "Unknown"
 
         # Получение контекста
         context = {"request_id": self.get_request_id(self.headers)}
@@ -181,7 +197,8 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
                 try:
                     response_body, code = self.router[path]({"body": request, "headers": self.headers}, context, self.store)
                 except Exception as e:
-                    logging.exception(f"Unexpected error: {e}")
+                    logging.exception(f"Error: {e}")
+                    error_text = e
                     code = INTERNAL_ERROR
             else:
                 code = NOT_FOUND
@@ -195,7 +212,11 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         if code not in ERRORS:
             response = {"response": response_body, "code": code}
         else:
-            response = {"error": response_body or ERRORS.get(code, "Unknown Error"), "code": code}
+            error_message = response_body or ERRORS.get(code, "Unknown Error")
+            if code == INTERNAL_ERROR:
+                error_message = f"{error_message}: {error_text}"
+
+            response = {"error": error_message, "code": code}
         context.update(response)
         logging.info(context)
 

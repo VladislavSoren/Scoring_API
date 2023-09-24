@@ -213,8 +213,8 @@ class TestCharField(unittest.TestCase):
 class TestPhoneField(unittest.TestCase):
     @cases(
         [
-            ("19996560820", "does not start with 7 or not len != 11"),
-            ("799965", "does not start with 7 or not len != 11"),
+            ("19996560820", "does not start with 7 or len != 11"),
+            ("799965", "does not start with 7 or len != 11"),
             (None, "string is None"),
         ]
     )
@@ -229,8 +229,8 @@ class TestPhoneField(unittest.TestCase):
 
     @cases(
         [
-            ("19996560820", "does not start with 7 or not len != 11"),
-            ("799965", "does not start with 7 or not len != 11"),
+            ("19996560820", "does not start with 7 or len != 11"),
+            ("799965", "does not start with 7 or len != 11"),
             ("", "string is empty"),
         ]
     )

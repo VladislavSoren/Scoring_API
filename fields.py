@@ -21,7 +21,7 @@ class ArgumentsField:
         # Validation
         if self.required:
             if value is None:
-                raise Exception("value is None, required=True")
+                raise Exception(f"{self.name} - value is None, required=True")
         else:
             if value is None:
                 setattr(instance, self.name, None)
@@ -29,17 +29,17 @@ class ArgumentsField:
 
         # type check
         if not isinstance(value, dict):
-            raise TypeError("must be a dict")
+            raise TypeError(f"{self.name} - must be a dict")
 
         # empty error if nullable=False
         if not self.nullable and (value == {}):
-            raise Exception("is empty, nullable=False")
+            raise Exception(f"{self.name} - is empty, nullable=False")
 
         # check valid property
         try:
             _ = json.dumps(value)  # get json_string
         except Exception:
-            raise Exception("is not a valid json")
+            raise Exception(f"{self.name} - is not a valid json")
         else:
             setattr(instance, self.name, value)
         # json_dict = json.loads(json_string)
@@ -59,7 +59,7 @@ class IntegerField:
         # Validation
         if self.required:
             if value is None:
-                raise Exception("value is None, required=True")
+                raise Exception(f"{self.name} - value is None, required=True")
         else:
             if value is None:
                 setattr(instance, self.name, None)
@@ -67,7 +67,7 @@ class IntegerField:
 
         # type check
         if not isinstance(value, int):
-            raise TypeError("value must be an int")
+            raise TypeError(f"{self.name} - value must be an int")
 
         setattr(instance, self.name, value)
 
@@ -96,7 +96,7 @@ class GenderField(IntegerField):
             setattr(instance, self.name, input_value)
         else:
             setattr(instance, self.name, None)
-            raise Exception("not in acceptable_range")
+            raise Exception(f"{self.name} - not in acceptable_range")
 
 
 class CharField:
@@ -113,7 +113,7 @@ class CharField:
         # Validation
         if self.required:
             if value is None:
-                raise Exception(f"string is None in {self.name}, required=True")
+                raise Exception(f"{self.name} - string is None, required=True")
         else:
             if value is None:
                 setattr(instance, self.name, None)
@@ -121,11 +121,11 @@ class CharField:
 
         # empty error if nullable=False
         if not self.nullable and (value == ""):
-            raise Exception(f"string is empty in {self.name}, nullable=False")
+            raise Exception(f"{self.name} - string is empty, nullable=False")
 
         # str type check
         if not isinstance(value, str):
-            raise TypeError(f"string must be a str in {self.name}")
+            raise TypeError(f"{self.name} - string must be a str")
 
         setattr(instance, self.name, value)
 
@@ -155,7 +155,7 @@ class PhoneField(CharField):
             if input_value.startswith("7") and len(input_value) == 11:
                 setattr(instance, self.name, input_value)
             else:
-                raise ValueError("does not start with 7 or not len != 11")
+                raise ValueError(f"{self.name} - does not start with 7 or len != 11")
 
 
 class EmailField(CharField):
@@ -183,7 +183,7 @@ class EmailField(CharField):
             if "@" in input_value:
                 setattr(instance, self.name, input_value)
             else:
-                raise ValueError("no @")
+                raise ValueError(f"{self.name} - no @")
 
 
 class DateField(CharField):
@@ -211,7 +211,7 @@ class DateField(CharField):
             try:
                 dt_date = datetime.datetime.strptime(input_value, "%d.%m.%Y").date()
             except ValueError:
-                raise ValueError("invalid format")
+                raise ValueError(f"{self.name} - invalid format")
             else:
                 setattr(instance, self.name, str(dt_date))
 
@@ -245,7 +245,7 @@ class BirthDayField(DateField):
 
         if delta_years > self.age_limit:
             setattr(instance, self.name, "")
-            raise ValueError(f"age more then {self.age_limit}")
+            raise ValueError(f"{self.name} - age more then {self.age_limit}")
         else:
             setattr(instance, self.name, input_value)
 
@@ -263,31 +263,15 @@ class ClientIDsField:
         # Validation
         # check for emptiness
         if self.required and not value:
-            raise Exception("array is empty")
+            raise Exception(f"{self.name} - array is empty")
 
         # list check
         if not isinstance(value, list):
-            raise TypeError("array must be a list")
+            raise TypeError(f"{self.name} - array must be a list")
 
         # values in list check
         for int_value in value:
             if not isinstance(int_value, int):
-                raise TypeError("value in array must be an int")
+                raise TypeError(f"{self.name} - value in array must be an int")
 
         setattr(instance, self.name, value)
-
-
-#     @cases([
-#         {},
-#         {"date": "20.07.2017"},
-#         {"client_ids": [], "date": "20.07.2017"},
-#         {"client_ids": {1: 2}, "date": "20.07.2017"},
-#         {"client_ids": ["1", "2"], "date": "20.07.2017"},
-#         {"client_ids": [1, 2], "date": "XXX"},
-#     ])
-#     def test_invalid_interests_request(self, arguments):
-#         request = {"account": "horns&hoofs", "login": "h&f", "method": "clients_interests", "arguments": arguments}
-#         self.set_valid_auth(request)
-#         response, code = self.get_response(request)
-#         self.assertEqual(api.INVALID_REQUEST, code, arguments)
-#         self.assertTrue(len(response))
