@@ -12,80 +12,13 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 # from io import BytesIO
 from optparse import OptionParser
 
-from fields import (
-    ArgumentsField,
-    BirthDayField,
-    CharField,
-    ClientIDsField,
-    DateField,
-    EmailField,
-    GenderField,
-    PhoneField,
-)
+from config import ADMIN_SALT, ERRORS, SALT, ClientStatus, StatusCodes
 from scoring import get_interests, get_score
-
-SALT = "Otus"
-ADMIN_LOGIN = "admin"
-ADMIN_SALT = "42"
-
-
-class StatusCodes:
-    OK = 200
-    BAD_REQUEST = 400
-    FORBIDDEN = 403
-    NOT_FOUND = 404
-    INVALID_REQUEST = 422
-    INTERNAL_ERROR = 500
-
-
-class ClientStatus:
-    admin = "admin"
-    user = "user"
-    forbidden = StatusCodes.FORBIDDEN
-
-
-ERRORS = {
-    StatusCodes.BAD_REQUEST: "Bad Request",
-    StatusCodes.FORBIDDEN: "Forbidden",
-    StatusCodes.NOT_FOUND: "Not Found",
-    StatusCodes.INVALID_REQUEST: "Invalid Request",
-    StatusCodes.INTERNAL_ERROR: "Internal Server Error",
-}
-UNKNOWN = 0
-MALE = 1
-FEMALE = 2
-GENDERS = {
-    UNKNOWN: "unknown",
-    MALE: "male",
-    FEMALE: "female",
-}
-
-
-class ClientsInterestsRequest:
-    client_ids = ClientIDsField("client_ids", required=True)
-    date = DateField("date", required=False, nullable=True)
-
-
-class OnlineScoreRequest:
-    first_name = CharField("first_name", required=False, nullable=True)
-    last_name = CharField("last_name", required=False, nullable=True)
-    email = EmailField("email", required=False, nullable=True)
-    phone = PhoneField("phone", required=False, nullable=True)
-    birthday = BirthDayField("birthday", required=False, nullable=True)
-    gender = GenderField("gender", required=False, nullable=True)
-
-
-# Структура запроса
-class MethodRequest:
-    account = CharField("account", required=False, nullable=True)
-    login = CharField("login", required=True, nullable=True)
-    token = CharField("token", required=True, nullable=True)
-    arguments = ArgumentsField("arguments", required=True, nullable=True)
-    method = CharField("method", required=True, nullable=False)
-
-    @property
-    def is_admin(self):
-        return self.login == ADMIN_LOGIN
+from validators import (
+    ClientsInterestsRequest,
+    OnlineScoreRequest,
+    get_request_validator,
+)
 
 
 def check_auth(request):
@@ -101,16 +34,6 @@ def check_auth(request):
             return ClientStatus.user
 
     return ClientStatus.forbidden
-
-
-def get_request_validator(request_body):
-    request_validator = MethodRequest()
-    request_validator.account = request_body.get("account")
-    request_validator.login = request_body.get("login")
-    request_validator.token = request_body.get("token")
-    request_validator.arguments = request_body.get("arguments")
-    request_validator.method = request_body.get("method")
-    return request_validator
 
 
 # Метод обработки score запроса
@@ -153,6 +76,14 @@ def score_handler(request, ctx, store):
     else:
         code = StatusCodes.FORBIDDEN
 
+    # Заполняем контекст
+    has_fields = []
+    fields_vals_dict = vars(request_validator)
+    for field, val in fields_vals_dict.items():
+        if val != "":
+            has_fields.append(field)
+    ctx["has"] = has_fields
+
     return response, code
 
 
@@ -181,6 +112,9 @@ def interests_handler(request, ctx, store):
 
     else:
         code = StatusCodes.FORBIDDEN
+
+    # Заполняем контекст
+    ctx["nclients"] = len(request_validator.arguments["client_ids"])
 
     return response, code
 
@@ -251,6 +185,8 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
                 error_message = f"{error_message}: {error_text}"
 
             response = {"error": error_message, "code": code}
+
+        # логируем контекст
         context.update(response)
         logging.info(context)
 
@@ -291,5 +227,3 @@ if __name__ == "__main__":
 
     # Запускаем сервер
     run_server()
-
-    pass
