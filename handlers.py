@@ -1,4 +1,5 @@
 from config import ClientStatus, StatusCodes
+from fields.custom_errors import NoneError, NullError, ValidationError
 from scoring import get_interests, get_score
 from validators import (
     ClientsInterestsRequest,
@@ -10,6 +11,9 @@ from validators import (
 
 # Метод обработки score запроса
 def score_handler(request, ctx, store):
+    if not request:
+        return {}, StatusCodes.INVALID_REQUEST
+
     request_body = request["body"]
     response = {}
 
@@ -25,12 +29,15 @@ def score_handler(request, ctx, store):
         arguments = request_validator.arguments
 
         args_validator = OnlineScoreRequest()
-        args_validator.first_name = arguments.get("first_name")
-        args_validator.last_name = arguments.get("last_name")
-        args_validator.email = arguments.get("email")
-        args_validator.phone = arguments.get("phone")
-        args_validator.birthday = arguments.get("birthday")
-        args_validator.gender = arguments.get("gender")
+        try:
+            args_validator.first_name = arguments.get("first_name")
+            args_validator.last_name = arguments.get("last_name")
+            args_validator.email = arguments.get("email")
+            args_validator.phone = arguments.get("phone")
+            args_validator.birthday = arguments.get("birthday")
+            args_validator.gender = arguments.get("gender")
+        except (NoneError, NullError, ValidationError, TypeError, ValueError):
+            return response, StatusCodes.INVALID_REQUEST
 
         score = get_score(
             store,
@@ -47,6 +54,7 @@ def score_handler(request, ctx, store):
 
     else:
         code = StatusCodes.FORBIDDEN
+        return response, code
 
     # Заполняем контекст
     has_fields = []
@@ -61,6 +69,9 @@ def score_handler(request, ctx, store):
 
 # Метод обработки interests запроса
 def interests_handler(request, ctx, store):
+    if not request:
+        return {}, StatusCodes.INVALID_REQUEST
+
     request_body = request["body"]
     response = {}
 
@@ -71,8 +82,11 @@ def interests_handler(request, ctx, store):
         arguments = request_validator.arguments
 
         args_validator = ClientsInterestsRequest()
-        args_validator.client_ids = arguments.get("client_ids")
-        args_validator.date = arguments.get("date")
+        try:
+            args_validator.client_ids = arguments.get("client_ids")
+            args_validator.date = arguments.get("date")
+        except (NoneError, NullError, ValidationError, TypeError, ValueError):
+            return response, StatusCodes.INVALID_REQUEST
 
         interests_dict = {}
         for cid in args_validator.client_ids:
@@ -84,6 +98,7 @@ def interests_handler(request, ctx, store):
 
     else:
         code = StatusCodes.FORBIDDEN
+        return response, code
 
     # Заполняем контекст
     ctx["nclients"] = len(request_validator.arguments["client_ids"])
