@@ -1,5 +1,6 @@
 import time
 import unittest
+from test.support_functions import start_test_redis, stop_test_redis
 
 from redis.exceptions import ConnectionError
 
@@ -11,13 +12,15 @@ class TestStoreOK(unittest.TestCase):
     # execute before all tests
     @classmethod
     def setUpClass(cls):
+        start_test_redis()
+        time.sleep(1)
         print("setUpClass")
         cls.store = Store(store_params=store_params_ok)
 
     # execute after all tests
     @classmethod
     def tearDownClass(cls):
-        pass
+        stop_test_redis()
 
     # execute before each tests
     def setUp(self):

@@ -1,3 +1,11 @@
-docker exec -it my-redis-container redis-cli
+docker exec -it redis_test redis-cli
 
-docker run --name my-redis-container -p 6379:6379 -d redis
+docker run --name redis_test -p 6379:6379 -d redis
+
+docker container create --name redis_test -p 6379:6379 redis
+
+docker start redis_test
+
+docker stop redis_test
+
+docker rm redis_test

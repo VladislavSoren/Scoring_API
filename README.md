@@ -44,9 +44,12 @@
 2. `python api.py`
 
 - Запуск тестов:
+  - `docker container create --name redis_test -p 6379:6379 redis`
   - `cd <Абсолютный путь к директории Scoring_API>`
   - Unit: `python -m unittest discover -s test.unit -p "test_*.py"`
   - Integration: `python -m unittest discover -s test.integration -p "test_*.py"`
   - All: `python -m unittest`
+
+* `docker rm redis_test`
 
 ### Реaлизован pre-commit для проверки на соответствие PEP8

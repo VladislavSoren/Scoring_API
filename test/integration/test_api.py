@@ -1,8 +1,10 @@
 import datetime
 import hashlib
 import json
+import time
 import unittest
 from test import cases
+from test.support_functions import start_test_redis, stop_test_redis
 
 from config import store_params_fail  # store_params_fail,
 from config import ADMIN_LOGIN, ADMIN_SALT, StatusCodes, accounts, store_params_ok
@@ -13,6 +15,9 @@ from handlers import interests_handler, score_handler
 class TestApi(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        start_test_redis()
+        time.sleep(1)
+
         # get store
         cls.store = Store(store_params=store_params_ok)
 
@@ -25,11 +30,16 @@ class TestApi(unittest.TestCase):
         cls.store.set("1", json.dumps(["travel", "sport"]))
         cls.store.set("2", json.dumps(["books", "cinema"]))
 
+    def tearDown(self):
+        pass
+
     @classmethod
     def tearDownClass(cls):
         keys_all = cls.store.r.keys("*")
         if keys_all:
             cls.store.r.delete(*keys_all)
+
+        stop_test_redis()
 
     def setUp(self):
         self.context = {}
