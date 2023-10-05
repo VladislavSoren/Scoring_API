@@ -53,11 +53,13 @@ def get_request_validator(request_body):
 
 def check_auth(request):
     if request.is_admin:
+        # check token for admin
         info_for_hash_bytes = (datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).encode("utf-8")
         digest = hashlib.sha512(info_for_hash_bytes).hexdigest()
         if digest == request.token:
             return ClientStatus.admin
     else:
+        # check token for user
         info_for_hash_bytes = (request.account + request.login + SALT).encode("utf-8")
         digest = hashlib.sha512(info_for_hash_bytes).hexdigest()
         if digest == request.token:

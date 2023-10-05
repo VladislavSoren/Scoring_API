@@ -1,3 +1,5 @@
+from redis.exceptions import ConnectionError
+
 from config import ClientStatus, StatusCodes
 from fields.custom_errors import NoneError, NullError, ValidationError
 from scoring import get_interests, get_score
@@ -21,7 +23,7 @@ def score_handler(request, ctx, store):
     status = check_auth(request_validator)
 
     if status == ClientStatus.admin:
-        response = 42
+        response = {"score": 42}
         code = StatusCodes.OK
 
     elif status == ClientStatus.user:
@@ -90,8 +92,12 @@ def interests_handler(request, ctx, store):
 
         interests_dict = {}
         for cid in args_validator.client_ids:
-            interests = get_interests(store, cid=cid)
-            interests_dict[cid] = interests
+            try:
+                interests = get_interests(store, cid=cid)
+            except ConnectionError:
+                return {}, StatusCodes.INTERNAL_ERROR
+            else:
+                interests_dict[cid] = interests
 
         response = interests_dict
         code = StatusCodes.OK

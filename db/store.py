@@ -46,9 +46,9 @@ class Store:
         except ConnectionError:
             raise ConnectionError
 
-    def get_cache(self, key, value):
+    def get_cache(self, key):
         try:
-            return self.r.set(key, value)
+            return self.r.get(key)
         except ConnectionError:
             return None
 

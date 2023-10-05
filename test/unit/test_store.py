@@ -3,22 +3,16 @@ import unittest
 
 from redis.exceptions import ConnectionError
 
+from config import store_params_fail, store_params_ok
 from db.store import Store
 
 
 class TestStoreOK(unittest.TestCase):
-    store_params_ok = {
-        "host": "127.0.0.1",
-        "port": 6379,
-        "db": 0,
-        "decode_responses": True,
-    }
-
     # execute before all tests
     @classmethod
     def setUpClass(cls):
         print("setUpClass")
-        cls.store = Store(store_params=cls.store_params_ok)
+        cls.store = Store(store_params=store_params_ok)
 
     # execute after all tests
     @classmethod
@@ -72,7 +66,7 @@ class TestStoreOK(unittest.TestCase):
         val_set = "bar"
         expire_time = 1
         self.store.r.set(key_set, val_set, expire_time)
-        val_get = self.store.get(key_set)
+        val_get = self.store.get_cache(key_set)
 
         self.assertEqual(val_set, val_get)
 
@@ -83,18 +77,11 @@ class TestStoreOK(unittest.TestCase):
 
 
 class TestStoreFail(unittest.TestCase):
-    store_params_fail = {
-        "host": "127.0.0.1",
-        "port": 9999,
-        "db": 0,
-        "decode_responses": True,
-    }
-
     # execute before all tests
     @classmethod
     def setUpClass(cls):
         print("setUpClass")
-        cls.store = Store(store_params=cls.store_params_fail)
+        cls.store = Store(store_params=store_params_fail)
 
     def test_set_fail(self):
         key_set = "foo"
@@ -118,7 +105,6 @@ class TestStoreFail(unittest.TestCase):
 
     def test_get_cache_fail(self):
         key_set = "foo"
-        val_set = "bar"
 
-        val_get = self.store.get_cache(key_set, val_set)
+        val_get = self.store.get_cache(key_set)
         self.assertEqual(None, val_get)
