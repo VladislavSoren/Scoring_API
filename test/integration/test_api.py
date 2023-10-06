@@ -8,7 +8,7 @@ from test.support_functions import start_test_redis, stop_test_redis
 
 from config import store_params_fail  # store_params_fail,
 from config import ADMIN_LOGIN, ADMIN_SALT, StatusCodes, accounts, store_params_ok
-from db.store import Store
+from db.store import Store, StoreFake
 from handlers import interests_handler, score_handler
 
 
@@ -19,7 +19,7 @@ class TestApi(unittest.TestCase):
         time.sleep(1)
 
         # get store
-        cls.store = Store(store_params=store_params_ok)
+        cls.store = StoreFake(store_params=store_params_ok)
 
         # set valid admin
         admin_data = json.dumps(accounts["admin"])

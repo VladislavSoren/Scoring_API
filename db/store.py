@@ -1,4 +1,5 @@
 import redis
+from fakeredis import FakeRedis
 from redis.backoff import ExponentialBackoff
 from redis.exceptions import ConnectionError  # BusyLoadingError,; TimeoutError
 from redis.retry import Retry
@@ -56,6 +57,27 @@ class Store:
         self.r.delete(key)
 
 
+class StoreFake(Store):
+    def __init__(self, store_params):
+        super().__init__(store_params)
+
+        self.r = FakeRedis(
+            # В рамках данной реализации переподключение очевидно не работает...
+            **store_params,
+            retry=self.retry,
+            socket_timeout=5,
+            retry_on_timeout=True,
+            # retry_on_error=[BusyLoadingError, ConnectionError, TimeoutError]
+        )
+        try:
+            self.r.ping()
+        except ConnectionError as e:
+            print(e)
+        else:
+            print("Connection is established")
+        pass
+
+
 if __name__ == "__main__":
     store_params = {
         "host": "127.0.0.1",
@@ -65,7 +87,7 @@ if __name__ == "__main__":
         "decode_responses": True,
     }
 
-    store = Store(store_params=store_params)
+    store = StoreFake(store_params=store_params)
 
     store.set("foo", "bar")
     val = store.get("foo")
@@ -77,3 +99,4 @@ if __name__ == "__main__":
     print(val)
 
     store.set_cache("foo", "bar", 10)
+    print(store.r.keys("*"))

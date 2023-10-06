@@ -5,7 +5,7 @@ from test.support_functions import start_test_redis, stop_test_redis
 from redis.exceptions import ConnectionError
 
 from config import store_params_fail, store_params_ok
-from db.store import Store
+from db.store import Store, StoreFake
 
 
 class TestStoreOK(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestStoreOK(unittest.TestCase):
         start_test_redis()
         time.sleep(1)
         print("setUpClass")
-        cls.store = Store(store_params=store_params_ok)
+        cls.store = StoreFake(store_params=store_params_ok)
 
     # execute after all tests
     @classmethod
